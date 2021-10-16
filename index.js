@@ -23,6 +23,17 @@ app.get("/api/persons", (request, response) => {
     response.json(persons);
 });
 
+app.get("/api/persons/:id", (request, response) => {
+    const id = Number(request.params.id);
+    const requestedPerson = persons.find((p) => p.id === id);
+    console.log(requestedPerson);
+    if (requestedPerson === undefined) {
+        return response.status(400).send(`Bad Request: There is no person with id ${id}`);
+    }
+
+    response.json(persons.find((p) => p.id === id));
+});
+
 app.get("/info", (request, response) => {
     const currentDate = new Date();
     response.send(`
