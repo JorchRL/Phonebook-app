@@ -1,4 +1,4 @@
-import express from "express";
+const express = require("express");
 const PORT = 3001;
 const app = express();
 
@@ -14,6 +14,10 @@ const persons = [
         number: "",
     },
 ];
+
+app.get("/", (request, response) => {
+    response.send("Please use '/api/persons' to interact with this app");
+});
 
 app.get("/api/persons", (request, response) => {
     response.json(persons);
