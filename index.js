@@ -1,8 +1,17 @@
-const { response } = require("express");
+const { response, request } = require("express");
 const express = require("express");
 const bodyParser = require("body-parser");
 const PORT = 3001;
 const app = express();
+
+const requestLogger = (request, response, next) => {
+    console.log("---Request---");
+    console.log("Method: ", request.method);
+    console.log("Path: ", request.path);
+    console.log("Body: ", request.body);
+    console.log("---");
+    next();
+};
 
 let persons = [
     {
@@ -17,7 +26,8 @@ let persons = [
     },
 ];
 
-app.use(bodyParser.json());
+app.use(express.json());
+app.use(requestLogger);
 
 //// REST Endpoints
 
@@ -55,7 +65,7 @@ app.post("/api/persons", (request, response) => {
 app.get("/api/persons/:id", (request, response) => {
     const id = Number(request.params.id);
     const requestedPerson = persons.find((p) => p.id === id);
-    console.log(requestedPerson);
+    // console.log(requestedPerson);
     if (requestedPerson === undefined) {
         return response.status(400).send(`Bad Request: There is no person with id ${id}`);
     }
@@ -85,6 +95,12 @@ app.get("/info", (request, response) => {
 });
 
 /////
+
+const unknowEndpoint = (request, response) => {
+    response.status(404).send({ error: "unknown endpoint" });
+};
+
+app.use(unknowEndpoint);
 
 app.listen(PORT, () => {
     console.log(`Server initiated at http://localhost:${PORT}`);
