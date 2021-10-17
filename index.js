@@ -1,5 +1,6 @@
 const { response } = require("express");
 const express = require("express");
+const bodyParser = require("body-parser");
 const PORT = 3001;
 const app = express();
 
@@ -16,6 +17,8 @@ let persons = [
     },
 ];
 
+app.use(bodyParser.json());
+
 //// REST Endpoints
 
 app.get("/", (request, response) => {
@@ -24,6 +27,29 @@ app.get("/", (request, response) => {
 
 app.get("/api/persons", (request, response) => {
     response.json(persons);
+});
+
+app.post("/api/persons", (request, response) => {
+    const newId = Math.max(...persons.map((p) => p.id)) + 1;
+    const content = request.body.content;
+    // console.log(content);
+    if (content === undefined) {
+        return response.status(400).send(`Bad Request: No content`);
+    } else if (content.name === undefined || content.number === undefined) {
+        return response.status(400).send("Bad Request: must include both a name and a number");
+    } else if (persons.find((p) => p.name === content.name)) {
+        return response.status(400).json({ error: "name must be unique" });
+    }
+
+    const newPerson = {
+        name: request.body.content.name,
+        number: request.body.content.number,
+        id: newId,
+    };
+
+    persons = persons.concat(newPerson);
+
+    response.send(newPerson);
 });
 
 app.get("/api/persons/:id", (request, response) => {
