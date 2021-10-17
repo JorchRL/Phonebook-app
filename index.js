@@ -1,17 +1,17 @@
 const { response, request } = require("express");
 const express = require("express");
-const bodyParser = require("body-parser");
+const morgan = require("morgan");
 const PORT = 3001;
 const app = express();
 
-const requestLogger = (request, response, next) => {
-    console.log("---Request---");
-    console.log("Method: ", request.method);
-    console.log("Path: ", request.path);
-    console.log("Body: ", request.body);
-    console.log("---");
-    next();
-};
+// const requestLogger = (request, response, next) => {
+//     console.log("---Request---");
+//     console.log("Method: ", request.method);
+//     console.log("Path: ", request.path);
+//     console.log("Body: ", request.body);
+//     console.log("---");
+//     next();
+// };
 
 let persons = [
     {
@@ -26,8 +26,11 @@ let persons = [
     },
 ];
 
+morgan.token("content", (req) => JSON.stringify(req.body.content));
+
 app.use(express.json());
-app.use(requestLogger);
+app.use(morgan(":method :url :status :res[content-length] :response-time - ms :content"));
+// app.use(requestLogger);
 
 //// REST Endpoints
 
