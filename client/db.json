@@ -1,0 +1,28 @@
+{
+  "persons": [
+    {
+      "name": "Pelos elGato",
+      "id": 1
+    },
+    {
+      "name": "Vaca Panquesina",
+      "id": 2
+    },
+    {
+      "name": "Pirri Otota",
+      "id": 3
+    },
+    {
+      "name": "Pinky Winky",
+      "id": 4
+    },
+    {
+      "name": "Rusty Totoshka",
+      "id": 5
+    },
+    {
+      "name": "Patiti Pulgosa",
+      "id": 6
+    }
+  ]
+}
