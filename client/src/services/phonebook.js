@@ -1,6 +1,7 @@
 import axios from "axios";
 
-const baseUrl = "http://localhost:3001/persons";
+// const baseUrl = "http://localhost:3001/persons";
+const baseUrl = "/api/persons"; // Relative url -- to use with server from build and with proxy from development
 
 const getAllNumbers = () => {
     const request = axios.get(baseUrl);

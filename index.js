@@ -28,6 +28,7 @@ let persons = [
 
 morgan.token("content", (req) => JSON.stringify(req.body.content));
 
+app.use(express.static("build"));
 app.use(express.json());
 app.use(morgan(":method :url :status :res[content-length] :response-time - ms :content"));
 // app.use(requestLogger);
