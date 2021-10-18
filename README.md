@@ -1,2 +1,3 @@
-# phonebook-backend
-The backend for the phonebook app (3.1 to 3.6)
+# Phonebook-BackEnd
+
+The backend for the phonebook app (Excercises from part 3 of the course)
