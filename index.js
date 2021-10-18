@@ -1,17 +1,7 @@
-const { response, request } = require("express");
 const express = require("express");
 const morgan = require("morgan");
 const PORT = 3001;
 const app = express();
-
-// const requestLogger = (request, response, next) => {
-//     console.log("---Request---");
-//     console.log("Method: ", request.method);
-//     console.log("Path: ", request.path);
-//     console.log("Body: ", request.body);
-//     console.log("---");
-//     next();
-// };
 
 let persons = [
     {
@@ -26,16 +16,20 @@ let persons = [
     },
 ];
 
-morgan.token("content", (req) => JSON.stringify(req.body.content));
-
+/// Middleware
 app.use(express.static("build"));
 app.use(express.json());
+
+/// Logging requests to console
+morgan.token("content", (req) => {
+    return JSON.stringify(req.body.content);
+});
 app.use(morgan(":method :url :status :res[content-length] :response-time - ms :content"));
-// app.use(requestLogger);
 
 //// REST Endpoints
 
 app.get("/", (request, response) => {
+    /// We shouldn't see this message, as express should instead serve the built React frontend.
     response.send("Please use '/api/persons' to interact with this app");
 });
 
@@ -62,7 +56,7 @@ app.post("/api/persons", (request, response) => {
     };
 
     persons = persons.concat(newPerson);
-
+    // console.log(persons);
     response.send(newPerson);
 });
 
@@ -87,6 +81,31 @@ app.delete("/api/persons/:id", (request, response) => {
     persons = persons.filter((p) => p.id !== id);
 
     response.status(200).end();
+});
+
+app.put("/api/persons/:id", (request, response) => {
+    const id = Number(request.params.id);
+    const requestedPerson = persons.find((p) => p.id === id);
+    if (requestedPerson === undefined) {
+        console.log("Bad request: there is no such id. Check your frontend code!");
+        return response.status(400).send(`Bad Request: There is no person with id ${id}`);
+    }
+    const content = request.body.content;
+    // console.log(content);
+    if (content === undefined) {
+        return response.status(400).send(`Bad Request: No content`);
+    } else if (content.name === undefined || content.number === undefined) {
+        return response.status(400).send("Bad Request: must include both a name and a number");
+    }
+
+    const newPerson = {
+        name: request.body.content.name,
+        number: request.body.content.number,
+        id: id,
+    };
+
+    persons = persons.map((p) => (id === p.id ? newPerson : p));
+    response.json(persons.find((p) => p.id === id));
 });
 
 app.get("/info", (request, response) => {

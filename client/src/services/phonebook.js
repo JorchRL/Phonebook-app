@@ -9,7 +9,7 @@ const getAllNumbers = () => {
 };
 
 const addNumber = (newObject) => {
-    const request = axios.post(baseUrl, newObject);
+    const request = axios.post(baseUrl, { content: newObject });
     return request.then((resp) => resp.data);
 };
 
@@ -19,7 +19,7 @@ const deleteNumber = (deletedId) => {
 };
 
 const updateNumber = (newObject, updateId) => {
-    const request = axios.put(`${baseUrl}/${updateId}`, newObject);
+    const request = axios.put(`${baseUrl}/${updateId}`, { content: newObject });
     return request.then((resp) => resp.data);
 };
 
