@@ -54,7 +54,7 @@ app.get("/api/persons", (request, response) => {
 
 // Add a new person
 app.post("/api/persons", (request, response) => {
-  const newId = Math.max(...persons.map((p) => p.id)) + 1;
+  //   const newId = Math.max(...persons.map((p) => p.id)) + 1;
   const content = request.body.content;
   // console.log(content);
   if (content === undefined) {
@@ -63,19 +63,25 @@ app.post("/api/persons", (request, response) => {
     return response
       .status(400)
       .send("Bad Request: must include both a name and a number");
-  } else if (persons.find((p) => p.name === content.name)) {
-    return response.status(400).json({ error: "name must be unique" });
   }
 
-  const newPerson = {
+  const newPerson = new Person({
     name: request.body.content.name,
     number: request.body.content.number,
-    id: newId,
-  };
+  });
 
-  persons = persons.concat(newPerson);
-  // console.log(persons);
-  response.send(newPerson);
+  newPerson
+    .save()
+    .then((savedNote) => {
+      response.json(savedNote);
+    })
+    .catch((error) => {
+      console.log("Error saving a new person", error.message);
+    });
+
+  //   persons = persons.concat(newPerson);
+  //   // console.log(persons);
+  //   response.send(newPerson);
 });
 
 // Get person by id

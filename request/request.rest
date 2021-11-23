@@ -16,7 +16,7 @@ Content-Type: application/json
 
 {"content" : {
     "name": "Pelitossss",
-    "number": "numba one!"
+    "number": 11111
 }}
 
 ####
