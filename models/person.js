@@ -16,13 +16,13 @@ const personSchema = new mongoose.Schema({
   name: {
     type: String,
     required: true,
-    minlength: 1,
+    minlength: 3,
     unique: true,
   },
   number: {
     type: Number,
     required: true,
-    minlength: 1,
+    minlength: 8,
   },
 });
 personSchema.plugin(uniqueValidator, { type: "mongoose-unique-validator" });
