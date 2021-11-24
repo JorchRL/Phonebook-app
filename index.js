@@ -19,18 +19,19 @@ app.get("/", (request, response) => {
 });
 
 // Get all persons
-app.get("/api/persons", (request, response) => {
+app.get("/api/persons", (request, response, next) => {
   Person.find({})
     .then((persons) => {
       response.json(persons);
     })
     .catch((error) => {
-      console.log("Could not recover persons from MongoDB", error.message);
+      // console.log("Could not recover persons from MongoDB", error.message);
+      next(error);
     });
 });
 
 // Add a new person
-app.post("/api/persons", (request, response) => {
+app.post("/api/persons", (request, response, next) => {
   //   const newId = Math.max(...persons.map((p) => p.id)) + 1;
   const content = request.body.content;
   // console.log(content);
@@ -53,51 +54,40 @@ app.post("/api/persons", (request, response) => {
       response.json(savedNote);
     })
     .catch((error) => {
-      console.log("Error saving a new person", error.message);
+      // console.log("Error saving a new person", error.message);
+      next(error);
     });
 });
 
-// Get person by id ********** (verify with postman)
-app.get("/api/persons/:id", (request, response) => {
-  const id = Number(request.params.id);
-  const requestedPerson = persons.find((p) => p.id === id);
-  // console.log(requestedPerson);
-  if (requestedPerson === undefined) {
-    return response
-      .status(400)
-      .send(`Bad Request: There is no person with id ${id}`);
-  }
-
-  response.json(persons.find((p) => p.id === id));
+// Get person by id
+app.get("/api/persons/:id", (request, response, next) => {
+  Person.findById(request.params.id)
+    .then((person) => {
+      if (person) {
+        response.json(person);
+      } else {
+        response.status(404).end();
+      }
+    })
+    .catch((error) => {
+      // console.log(error);
+      // response.status(500).end();
+      next(error);
+    });
 });
 
 // Delete person by id ********** (verify with client)
-app.delete("/api/persons/:id", (request, response) => {
-  const id = Number(request.params.id);
-  const requestedPerson = persons.find((p) => p.id === id);
-  if (requestedPerson === undefined) {
-    return response
-      .status(400)
-      .send(`Bad Request: There is no person with id ${id}`);
-  }
-
-  persons = persons.filter((p) => p.id !== id);
-
-  response.status(200).end();
+app.delete("/api/persons/:id", (request, response, next) => {
+  Person.findOneAndRemove(request.params.id)
+    .then((result) => {
+      response.status(204).end();
+    })
+    .catch((error) => next(error));
 });
 
 // Update person by id ************** (verify with client)
-app.put("/api/persons/:id", (request, response) => {
-  const id = Number(request.params.id);
-  const requestedPerson = persons.find((p) => p.id === id);
-  if (requestedPerson === undefined) {
-    console.log("Bad request: there is no such id. Check your frontend code!");
-    return response
-      .status(400)
-      .send(`Bad Request: There is no person with id ${id}`);
-  }
+app.put("/api/persons/:id", (request, response, next) => {
   const content = request.body.content;
-  // console.log(content);
   if (content === undefined) {
     return response.status(400).send(`Bad Request: No content`);
   } else if (content.name === undefined || content.number === undefined) {
@@ -107,21 +97,26 @@ app.put("/api/persons/:id", (request, response) => {
   }
 
   const newPerson = {
-    name: request.body.content.name,
-    number: request.body.content.number,
-    id: id,
+    name: content.name,
+    number: content.number,
   };
 
-  persons = persons.map((p) => (id === p.id ? newPerson : p));
-  response.json(persons.find((p) => p.id === id));
+  Person.findByIdAndUpdate(request.params.id, newPerson, { new: true })
+    .then((updatedNote) => {
+      response.json(updatedNote);
+    })
+    .catch((error) => next(error));
 });
 
-// Info {from exercise 3.2} *********** (verify with postman)
-app.get("/info", (request, response) => {
+// Info {from exercise 3.2}
+app.get("/info", async (request, response, next) => {
   const currentDate = new Date();
+  const numPersons = await Person.find({})
+    .then((persons) => persons.length)
+    .catch((error) => next(error));
   response.send(`
     <div>
-        <h3>Phonebook has info for ${persons.length} people</h3>
+        <h3>Phonebook has info for ${numPersons} people</h3>
         <p>${currentDate}</p>
     </div>`);
 });
@@ -130,6 +125,7 @@ app.get("/info", (request, response) => {
 
 const unknowEndpoint = (request, response) => {
   response.status(404).send({ error: "unknown endpoint" });
+  next();
 };
 
 app.use(unknowEndpoint);
@@ -141,6 +137,8 @@ const errorHandler = (error, request, response, next) => {
   if (error.name === "CastError") {
     return response.status(400).end(); // how do i implement this generically ???
   }
+
+  reponse.status(500).end();
 
   next(error);
 };
