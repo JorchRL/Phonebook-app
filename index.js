@@ -5,33 +5,10 @@ const PORT = process.env.PORT || 3001; // Heroku sets up process.env.PORT
 const app = express();
 const Person = require("./models/person");
 
-let persons = [
-  {
-    id: 1,
-    name: "Not on MongoDB Yet!",
-    number: "",
-  },
-  {
-    id: 2,
-    name: "Try something else :3",
-    number: "",
-  },
-];
-
 //////////// Middleware ///////////////
 app.use(express.static("build"));
+// app.use(cors)
 app.use(express.json());
-
-// Logging requests to console
-// morgan.token("content", (req) => {
-//   return JSON.stringify(req.body.content);
-// });
-// app.use(
-//   morgan(
-//     ":method :url :status :res[content-length] :response-time - ms :content"
-//   )
-// );
-//
 
 ///////// REST ENDPOINTS ////////////////
 
@@ -78,13 +55,9 @@ app.post("/api/persons", (request, response) => {
     .catch((error) => {
       console.log("Error saving a new person", error.message);
     });
-
-  //   persons = persons.concat(newPerson);
-  //   // console.log(persons);
-  //   response.send(newPerson);
 });
 
-// Get person by id
+// Get person by id ********** (verify with postman)
 app.get("/api/persons/:id", (request, response) => {
   const id = Number(request.params.id);
   const requestedPerson = persons.find((p) => p.id === id);
@@ -98,7 +71,7 @@ app.get("/api/persons/:id", (request, response) => {
   response.json(persons.find((p) => p.id === id));
 });
 
-// Delete person by id
+// Delete person by id ********** (verify with client)
 app.delete("/api/persons/:id", (request, response) => {
   const id = Number(request.params.id);
   const requestedPerson = persons.find((p) => p.id === id);
@@ -113,7 +86,7 @@ app.delete("/api/persons/:id", (request, response) => {
   response.status(200).end();
 });
 
-// Update person by id
+// Update person by id ************** (verify with client)
 app.put("/api/persons/:id", (request, response) => {
   const id = Number(request.params.id);
   const requestedPerson = persons.find((p) => p.id === id);
@@ -143,7 +116,7 @@ app.put("/api/persons/:id", (request, response) => {
   response.json(persons.find((p) => p.id === id));
 });
 
-// Info ???
+// Info {from exercise 3.2} *********** (verify with postman)
 app.get("/info", (request, response) => {
   const currentDate = new Date();
   response.send(`
@@ -161,6 +134,18 @@ const unknowEndpoint = (request, response) => {
 
 app.use(unknowEndpoint);
 
+/////// ERROR HANDLING ///////////// ********** (add to endpoints)
+const errorHandler = (error, request, response, next) => {
+  console.log(error.message);
+
+  if (error.name === "CastError") {
+    return response.status(400).end(); // how do i implement this generically ???
+  }
+
+  next(error);
+};
+
+app.use(errorHandler);
 /////// INIT SERVER ///////////////////////
 
 app.listen(PORT, () => {
