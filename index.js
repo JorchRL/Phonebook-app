@@ -32,9 +32,7 @@ app.get("/api/persons", (request, response, next) => {
 
 // Add a new person
 app.post("/api/persons", (request, response, next) => {
-  //   const newId = Math.max(...persons.map((p) => p.id)) + 1;
   const content = request.body.content;
-  // console.log(content);
   if (content === undefined) {
     return response.status(400).send(`Bad Request: No content`);
   } else if (content.name === undefined || content.number === undefined) {
@@ -54,12 +52,11 @@ app.post("/api/persons", (request, response, next) => {
       response.json(savedNote);
     })
     .catch((error) => {
-      // console.log("Error saving a new person", error.message);
       next(error);
     });
 });
 
-// Get person by id
+// Get person by id  (not in frontend)
 app.get("/api/persons/:id", (request, response, next) => {
   Person.findById(request.params.id)
     .then((person) => {
@@ -108,7 +105,7 @@ app.put("/api/persons/:id", (request, response, next) => {
     .catch((error) => next(error));
 });
 
-// Info {from exercise 3.2}
+// Info {from exercise 3.2} (not in front end)
 app.get("/info", async (request, response, next) => {
   const currentDate = new Date();
   const numPersons = await Person.find({})
@@ -136,6 +133,8 @@ const errorHandler = (error, request, response, next) => {
 
   if (error.name === "CastError") {
     return response.status(400).end(); // how do i implement this generically ???
+  } else if (error.name === "ValidationError") {
+    return response.status(400).send(error);
   }
 
   reponse.status(500).end();
