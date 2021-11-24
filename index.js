@@ -76,7 +76,7 @@ app.get("/api/persons/:id", (request, response, next) => {
     });
 });
 
-// Delete person by id ********** (verify with client)
+// Delete person by id
 app.delete("/api/persons/:id", (request, response, next) => {
   Person.findOneAndRemove(request.params.id)
     .then((result) => {
@@ -85,7 +85,7 @@ app.delete("/api/persons/:id", (request, response, next) => {
     .catch((error) => next(error));
 });
 
-// Update person by id ************** (verify with client)
+// Update person by id
 app.put("/api/persons/:id", (request, response, next) => {
   const content = request.body.content;
   if (content === undefined) {
