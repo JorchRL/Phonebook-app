@@ -1,160 +1,156 @@
-require("dotenv").config();
-const express = require("express");
-const morgan = require("morgan");
-const PORT = process.env.PORT || 3001; // Heroku sets up process.env.PORT
-const app = express();
-const Person = require("./models/person");
+require('dotenv').config()
+const express = require('express')
+const morgan = require('morgan')
+const PORT = process.env.PORT || 3001 // Heroku sets up process.env.PORT
+const app = express()
+const Person = require('./models/person')
+
 
 //////////// Middleware ///////////////
-app.use(express.static("build"));
-app.use(cors);
-app.use(express.json());
-const requestLogger = (request, response, next) => {
-  console.log("---Request---");
-  console.log("Method: ", request.method);
-  console.log("Path: ", request.path);
-  console.log("Body: ", request.body);
-  console.log("---");
-  next();
-};
+app.use(express.static('build'))
+// app.use(cors)
+app.use(express.json())
+
+morgan.token('content', (req) => JSON.stringify(req.body.content))
+app.use(morgan(':method :url :status :res[content-length] :response-time - ms :content'))
 ///////// REST ENDPOINTS ////////////////
 
 // Serve the frontend client
-app.get("/", (request, response) => {
+app.get('/', (request, response) => {
   /// We shouldn't see this message, as express should instead serve the built React frontend.
-  response.send("Please use '/api/persons' to interact with this app");
-});
+  response.send('Please use \'/api/persons\' to interact with this app')
+})
 
 // Get all persons
-app.get("/api/persons", (request, response, next) => {
+app.get('/api/persons', (request, response, next) => {
   Person.find({})
     .then((persons) => {
-      response.json(persons);
+      response.json(persons)
     })
     .catch((error) => {
       // console.log("Could not recover persons from MongoDB", error.message);
-      next(error);
-    });
-});
+      next(error)
+    })
+})
 
 // Add a new person
-app.post("/api/persons", (request, response, next) => {
-  const content = request.body.content;
+app.post('/api/persons', (request, response, next) => {
+  const content = request.body.content
   if (content === undefined) {
-    return response.status(400).send(`Bad Request: No content`);
+    return response.status(400).send('Bad Request: No content')
   } else if (content.name === undefined || content.number === undefined) {
     return response
       .status(400)
-      .send("Bad Request: must include both a name and a number");
+      .send('Bad Request: must include both a name and a number')
   }
 
   const newPerson = new Person({
     name: request.body.content.name,
     number: request.body.content.number,
-  });
+  })
 
   newPerson
     .save()
     .then((savedNote) => {
-      response.json(savedNote);
+      response.json(savedNote)
     })
     .catch((error) => {
-      next(error);
-    });
-});
+      next(error)
+    })
+})
 
 // Get person by id  (not in frontend)
-app.get("/api/persons/:id", (request, response, next) => {
+app.get('/api/persons/:id', (request, response, next) => {
   Person.findById(request.params.id)
     .then((person) => {
       if (person) {
-        response.json(person);
+        response.json(person)
       } else {
-        response.status(404).end();
+        response.status(404).end()
       }
     })
     .catch((error) => {
       // console.log(error);
       // response.status(500).end();
-      next(error);
-    });
-});
+      next(error)
+    })
+})
 
 // Delete person by id
-app.delete("/api/persons/:id", (request, response, next) => {
+app.delete('/api/persons/:id', (request, response, next) => {
   Person.findByIdAndRemove(request.params.id)
     .then((result) => {
-      response.status(204).end();
+      response.status(204).end()
     })
-    .catch((error) => next(error));
-});
+    .catch((error) => next(error))
+})
 
 // Update person by id
-app.put("/api/persons/:id", (request, response, next) => {
-  const content = request.body.content;
+app.put('/api/persons/:id', (request, response, next) => {
+  const content = request.body.content
   if (content === undefined) {
-    return response.status(400).send(`Bad Request: No content`);
+    return response.status(400).send('Bad Request: No content')
   } else if (content.name === undefined || content.number === undefined) {
     return response
       .status(400)
-      .send("Bad Request: must include both a name and a number");
+      .send('Bad Request: must include both a name and a number')
   }
 
   const newPerson = {
     name: content.name,
     number: content.number,
-  };
+  }
 
   Person.findByIdAndUpdate(request.params.id, newPerson, {
     new: true,
     runValidators: true,
   })
     .then((updatedNote) => {
-      response.json(updatedNote);
+      response.json(updatedNote)
     })
-    .catch((error) => next(error));
-});
+    .catch((error) => next(error))
+})
 
 // Info {from exercise 3.2} (not in front end)
-app.get("/info", async (request, response, next) => {
-  const currentDate = new Date();
+app.get('/info', async (request, response, next) => {
+  const currentDate = new Date()
   const numPersons = await Person.find({})
     .then((persons) => persons.length)
-    .catch((error) => next(error));
+    .catch((error) => next(error))
   response.send(`
     <div>
         <h3>Phonebook has info for ${numPersons} people</h3>
         <p>${currentDate}</p>
-    </div>`);
-});
+    </div>`)
+})
 
 ///// HANDLE UNKNOWN ENDPOINT //////////////
 
 const unknowEndpoint = (request, response) => {
-  response.status(404).send({ error: "unknown endpoint" });
-  next();
-};
+  response.status(404).send({ error: 'unknown endpoint' })
+  next()
+}
 
-app.use(unknowEndpoint);
+app.use(unknowEndpoint)
 
 /////// ERROR HANDLING ///////////// ********** (add to endpoints)
 const errorHandler = (error, request, response, next) => {
-  console.log(error.message);
+  console.log(error.message)
 
-  if (error.name === "CastError") {
-    return response.status(400).end(); // how do i implement this generically ???
-  } else if (error.name === "ValidationError") {
-    return response.status(400).send(error);
+  if (error.name === 'CastError') {
+    return response.status(400).end() // how do i implement this generically ???
+  } else if (error.name === 'ValidationError') {
+    return response.status(400).send(error)
   }
 
-  reponse.status(500).end();
+  reponse.status(500).end()
 
-  next(error);
-};
+  next(error)
+}
 
-app.use(errorHandler);
+app.use(errorHandler)
 /////// INIT SERVER ///////////////////////
 
 app.listen(PORT, () => {
-  console.log(`Server initiated at http://localhost:${PORT}`);
-});
+  console.log(`Server initiated at http://localhost:${PORT}`)
+})
