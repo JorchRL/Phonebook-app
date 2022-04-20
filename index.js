@@ -1,15 +1,22 @@
 require("dotenv").config();
 const express = require("express");
-// const morgan = require("morgan");
+const morgan = require("morgan");
 const PORT = process.env.PORT || 3001; // Heroku sets up process.env.PORT
 const app = express();
 const Person = require("./models/person");
 
 //////////// Middleware ///////////////
 app.use(express.static("build"));
-// app.use(cors)
+app.use(cors);
 app.use(express.json());
-
+const requestLogger = (request, response, next) => {
+  console.log("---Request---");
+  console.log("Method: ", request.method);
+  console.log("Path: ", request.path);
+  console.log("Body: ", request.body);
+  console.log("---");
+  next();
+};
 ///////// REST ENDPOINTS ////////////////
 
 // Serve the frontend client
